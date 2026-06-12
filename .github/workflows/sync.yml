@@ -1,0 +1,29 @@
+name: Sync BSB Calendar
+
+on:
+  schedule:
+    - cron: "45 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build calendar
+        run: python bsb_sync.py BSB.ics
+
+      - name: Commit if changed
+        run: |
+          git config user.name "bsb-sync-bot"
+          git config user.email "actions@github.com"
+          git add BSB.ics
+          git diff --cached --quiet || git commit -m "Update BSB calendar"
+          git push
